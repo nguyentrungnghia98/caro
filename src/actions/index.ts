@@ -1,5 +1,6 @@
 import * as TYPES from './types';
 import user from '../apis/user';
+import { DataAlert } from './alert';
 
 export interface User {
   name: string;
@@ -25,10 +26,12 @@ export interface ResponseLogin {
   token: string;
 }
 
+export interface ActionAlert {
+  type: string;
+  data: DataAlert;
+}
+
 export interface Action {
   type: string;
   payload?: any;
-  typeAlert?: string;
-  message?: string;
-  handleClick?: any;
 }

@@ -11,12 +11,19 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { State } from '../../reducers/index';
 import User from '../../apis/user';
 import { FormValueLogin } from '../../actions';
-import { openAlert, closeAlert } from '../../actions/alert';
+import {
+  closeAlert,
+  openAlertSuccess,
+  openAlertError
+} from '../../actions/alert';
 import history from '../../history';
+import FacebookLogin from 'react-facebook-login';
+import GoogleLogin from 'react-google-login';
 
 const LoginForm = (props: any) => {
-  const { type, signIn, openAlert, closeAlert } = props;
+  const { type, signIn, openAlertSuccess, openAlertError, closeAlert } = props;
   const [loading, setLoading] = useState(false);
+  const [loadingSocial, setLoadingSocial] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -69,12 +76,21 @@ const LoginForm = (props: any) => {
       if (isSignIn) {
         signIn(response.data);
       } else {
-        openAlert('success', '', handleClickRegisterAlert);
+        openAlertSuccess(
+          'Success',
+          'You have successfully registered! Please Login to continue'
+        );
       }
     } catch (error) {
-      console.log('err', error);
+      console.log({ error });
       setLoading(false);
-      openAlert('error', `${isSignIn ? 'Login' : 'Register'} failed!`);
+      if (isSignIn) {
+        openAlertError('Failed', `Wrong email or password!`);
+      } else {
+        let message = 'Register failed!';
+        if (error.response.data.message) message = error.response.data.message;
+        openAlertError('Failed', message);
+      }
     }
   }
 
@@ -86,12 +102,72 @@ const LoginForm = (props: any) => {
     }
   }
 
+  async function handleLoginSocial(data: any): Promise<void> {
+    try {
+      setLoadingSocial(true);
+      const url = `/user/login-social`;
+      const response = await User.post(url, data);
+      setLoadingSocial(false);
+      signIn(response.data);
+    } catch (error) {
+      console.log({ error });
+      setLoadingSocial(false);
+      let message = 'Login failed!';
+      if (error.response.data.message) message = error.response.data.message;
+      openAlertError('Failed', message);
+    }
+  }
+
+  function responseFacebook(response: any): void {
+    console.log(response);
+    const data = {
+      email: response.email,
+      name: response.name,
+      facebookId: response.id,
+      provider: 'facebook'
+    };
+    handleLoginSocial(data);
+  }
+
+  function responseGoogle(response: any): void {
+    console.log(response);
+    const data = {
+      email: response.profileObj.email,
+      name: response.profileObj.name,
+      provider: 'google',
+      googleId: response.googleId
+    };
+    handleLoginSocial(data);
+  }
+
   return (
-    <div className="login--container">
-      <Typography component="h1" variant="h5" className="login--header">
+    <div className="login__container">
+      <Typography component="h1" variant="h5" className="login__header">
         {type}
       </Typography>
-      <form className="login--form" autoComplete="off" onSubmit={handleSubmit}>
+      <div className="login__social">
+        <FacebookLogin
+          appId="463259067622314"
+          cssClass="btn btn__facebook"
+          textButton="Facebook"
+          fields="name,email,picture"
+          callback={responseFacebook}
+          isDisabled={loadingSocial}
+        />
+
+        <GoogleLogin
+          clientId="539505129187-ljgthsrvlg6l9h66v1o4kuatelduv6bv.apps.googleusercontent.com"
+          render={(renderProps: any) => (
+            <button className="btn btn__google" onClick={renderProps.onClick}>
+              Google
+            </button>
+          )}
+          onSuccess={responseGoogle}
+          onFailure={responseGoogle}
+          disabled={loadingSocial}
+        />
+      </div>
+      <form className="login__form" autoComplete="off" onSubmit={handleSubmit}>
         {!isSignIn && (
           <CssTextField
             variant="outlined"
@@ -163,7 +239,7 @@ const LoginForm = (props: any) => {
         >
           {loading ? <CircularProgress size={30} /> : type}
         </Button>
-        <div className="login--bottom">
+        <div className="login__bottom">
           {isSignIn && (
             <Fragment>
               <Link to="/login" className="link">
@@ -196,5 +272,5 @@ const mapStateToProp = (state: State) => {
 
 export default connect(
   mapStateToProp,
-  { signIn, openAlert, closeAlert }
+  { signIn, openAlertSuccess, openAlertError, closeAlert }
 )(LoginForm);

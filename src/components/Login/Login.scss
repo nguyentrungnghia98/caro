@@ -1,4 +1,4 @@
-@import "../../assets/scss/variable.scss";
+@import '../../assets/scss/variable.scss';
 
 .absolute-center-container {
   width: 100%;
@@ -71,48 +71,74 @@
   }
 }
 
-.login--container{
+.login__container {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 360px;
   z-index: 999;
-  label, .login--header, .login--bottom {
-    *{
+  label,
+  .login__header,
+  .login__bottom {
+    * {
       color: white;
     }
   }
-  
-  .login--header{
+
+  .login__header {
     font-size: 32px;
     margin-bottom: 12px;
-    color:white;
+    color: white;
   }
-  .login--bottom{
+
+  .login__social {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    > * {
+      width: 49%;
+    }
+  }
+  .btn {
+    height: 42px !important;
+    border-radius: 30px !important;
+    border: none !important;
+  }
+  .btn__facebook {
+    color: white;
+    background: #2d91ff;
+    width: 100%;
+  }
+  .btn__google {
+    background: #f7f7f7;
+    color: grey !important;
+  }
+
+  .login__bottom {
     margin-top: 12px;
     display: flex;
     justify-content: space-between;
   }
-  .btn-login{
+  .btn-login {
     margin-top: 12px;
     margin-bottom: 8px;
     background: white;
     height: 42px;
     border-radius: 30px;
     border: none;
-    span{
+    span {
       color: $grey;
       font-size: 15px;
     }
-    &:hover{
+    &:hover {
       background: white;
-      span{
+      span {
         color: $grey-darker;
       }
     }
   }
 }
 
-.login--container .btn-login span{
+.login__container .btn-login span {
   color: #58a0ef;
 }

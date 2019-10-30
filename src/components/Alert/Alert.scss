@@ -1,50 +1,179 @@
+@import '../../assets/scss/variable.scss';
+
 .MuiDialog-paper {
   padding: 25px 0px !important;
   min-height: 300px !important;
 
-  .card {
+  .alert--wrapper {
     display: flex;
     align-items: center;
     flex-direction: column;
-    width: 480px;
-    margin-top: 50px;
+    width: 600px;
+    padding: 8px 24px !important;
+    font-size: 18px;
+    .alert--icon {
+      height: 120px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-top: 24px;
+      padding-bottom: 16px;
+      animation: appear 0.45s ease-in-out;
+      img {
+        height: 100%;
+      }
+    }
+    .alert--title {
+      text-align: center;
+      color: $grey-darker;
+      font-weight: bold;
+      margin: 20px 8px;
+    }
+    .alert--subtitle {
+      text-align: center;
+      color: $grey-dark;
+      font-weight: 300;
+      margin: 16px 0px 40px;
+      word-wrap: break-word;
+    }
+    .alert--button-group {
+      padding: 24px 12px 4px;
+      border-top: 1px solid $grey-lighter;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      button {
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        min-width: 180px;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 16px;
+        transition: background 0.2s ease-in-out;
+        cursor: pointer;
+        &:focus {
+          outline: none;
+        }
+      }
+      .btn--ok {
+        &.success {
+          background: $green-300;
+          &:hover {
+            background: $green-400;
+          }
+        }
+        &.error {
+          background: $red-300;
+          &:hover {
+            background: $red-400;
+          }
+        }
+        &.info {
+          background: $cyan-300;
+          &:hover {
+            background: $cyan-400;
+          }
+        }
+      }
+      .btn--confirm {
+        margin-right: 8px;
+        &.warning {
+          background: $amber-400;
+          &:hover {
+            background: $amber-500;
+          }
+        }
+        &.question {
+          background: $deep-purple-200;
+          &:hover {
+            background: $deep-purple-300;
+          }
+        }
+      }
+      .btn--cancel {
+        margin-left: 8px;
+        background: $grey-mild;
+        &:hover {
+          background: $grey;
+        }
+      }
+    }
   }
+  // .btn {
+  //   text-decoration: none;
+  //   font-size: 16px;
+  //   cursor: pointer;
+  //   border-radius: 4px;
+  //   border-width: 0px;
+  //   border-style: initial;
+  //   border-color: initial;
+  //   border-image: initial;
+  //   padding: 10px;
+  //   outline: none;
+  //   transition: all 0.25s linear 0s;
+  // }
+  // .btn--action, .btn-restart {
+  //   color: white;
+  //   background: rgb(0, 162, 255);
+  //   margin-top: 36px;
+  // }
+  // .btn--close {
+  //   position: absolute;
+  //   right: 8px;
+  //   top: 8px;
+  //   background: white;
+  //   color: #797979;
+  //   border-radius: 50%;
+  //   border: 1px solid #e4e4e4;
+  //   padding: 4px 10px;
+  //   font-size: 20px;
+  //   font-weight: 400;
+  //   box-shadow: 1px 1px 2px #808080;
+  //   &:hover {
+  //     background: whitesmoke;
+  //   }
+  //   &:div {
+  //     margin-top: -2px;
+  //   }
+  // }
+}
 
-  .btn {
-    text-decoration: none;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 4px;
-    border-width: 0px;
-    border-style: initial;
-    border-color: initial;
-    border-image: initial;
-    padding: 10px;
-    outline: none;
-    transition: all 0.25s linear 0s;
+@media not all and (min-width: 767px) {
+  .alert--title {
+    margin: 8px 0;
+    font-size: 24px;
   }
-  .btn--action {
-    color: white;
-    background: rgb(0, 162, 255);
-    margin-top: 36px;
+  .alert--subtitle {
+    margin: 8px 0 28px;
+    font-size: 14px;
   }
-  .btn--close {
-    position: absolute;
-    right: 8px;
-    top: 8px;
-    background: white;
-    color: #797979;
-    border-radius: 50%;
-    border: 1px solid #e4e4e4;
-    padding: 4px 10px;
-    font-size: 20px;
-    font-weight: 400;
-    box-shadow: 1px 1px 2px #808080;
-    &:hover {
-      background: whitesmoke;
+  .alert--icon {
+    height: 80px;
+  }
+  .alert--button-group {
+    flex-direction: column;
+    button {
+      padding: 10px 20px;
+      min-width: 100px;
+      font-size: 14px;
     }
-    &:div {
-      margin-top: -2px;
+    .btn--confirm {
+      margin: 0 0 8px;
     }
+    .btn--cancel {
+      margin: 0;
+    }
+  }
+}
+@keyframes appear {
+  from {
+    opacity: 0.3;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

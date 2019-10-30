@@ -9,6 +9,10 @@ const MENU: Menu[] = [
     pathname: '/'
   },
   {
+    label: 'Caro',
+    pathname: '/Caro'
+  },
+  {
     label: 'Profile',
     pathname: '/profile'
   }

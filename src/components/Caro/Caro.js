@@ -230,7 +230,7 @@ class Caro extends React.Component {
     const { squares } = history[moveStep];
 
     return (
-      <div className="container">
+      <div className="container caro-container">
         {this.renderLeftSide(winner)}
         <div className="board">
           <WinnerPopUp />

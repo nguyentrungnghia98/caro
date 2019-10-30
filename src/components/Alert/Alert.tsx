@@ -1,35 +1,64 @@
 import React, { Fragment } from 'react';
 import { connect } from 'react-redux';
 import { State } from '../../reducers';
-import { closeAlert } from '../../actions/alert';
-import { Link } from 'react-router-dom';
+import { closeAlert, DataAlert } from '../../actions/alert';
 import { Dialog, DialogContent } from '@material-ui/core';
 import './Alert.scss';
+import { AlertReducer } from '../../reducers/Alert';
 
 const Alert = (props: any) => {
-  const { isOpen, closeAlert, handleClick, type, message } = props;
+  const { isOpen, data }: AlertReducer = props;
+  const { onYesFn, closeAlert } = props;
+  const { type, title, subtitle } = data;
+  let { okText, confirmText, cancelText } = data;
+
+  if (!okText) {
+    okText = 'OK';
+  }
+
+  if (!confirmText) {
+    confirmText = 'Continute';
+  }
+
+  if (!cancelText) {
+    cancelText = 'Cancel';
+  }
+
+  function close(): void {
+    console.log('close');
+    closeAlert();
+  }
+  function onYesClick(): void {
+    console.log('onYesClick');
+    if (onYesFn) onYesFn();
+    closeAlert();
+  }
+
   return (
-    <Dialog open={isOpen} className="modal">
-      <button type="button" className="btn btn--close" onClick={closeAlert}>
-        <div>x</div>
-      </button>
-      <DialogContent className="card">
-        {type === 'success' && (
-          <Fragment>
-            <h3>You have successfully registered!</h3>
-            <button onClick={handleClick} className="btn btn--action">
-              Go to login
+    <Dialog open={isOpen}>
+      <DialogContent className="alert--wrapper">
+        <div className="alert--icon">
+          <img src={'images/alert-' + type + '.svg'} />
+        </div>
+        <h2 className="alert--title">{title}</h2>
+        <div className="alert--subtitle">{subtitle}</div>
+        <div className="alert--button-group">
+          {(type === 'error' || type === 'success' || type === 'info') && (
+            <button className={'btn--ok ' + type} onClick={close}>
+              {okText}
             </button>
-          </Fragment>
-        )}
-        {type === 'error' && (
-          <Fragment>
-            <h3>{message}</h3>
-            <button onClick={closeAlert} className="btn btn--error">
-              Close
-            </button>
-          </Fragment>
-        )}
+          )}
+          {(type === 'warning' || type === 'question') && (
+            <Fragment>
+              <button className={'btn--confirm ' + type} onClick={onYesClick}>
+                {confirmText}
+              </button>
+              <button className="btn--cancel" onClick={close}>
+                {cancelText}
+              </button>
+            </Fragment>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -38,9 +67,7 @@ const Alert = (props: any) => {
 const mapStateToProps = (state: State) => {
   return {
     isOpen: state.alert.isOpen,
-    type: state.alert.type,
-    message: state.alert.message,
-    handleClick: state.alert.handleClick
+    data: state.alert.data
   };
 };
 

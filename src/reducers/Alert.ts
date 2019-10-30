@@ -1,28 +1,35 @@
 import { OPEN_ALERT, CLOSE_ALERT } from '../actions/types';
+import { ActionAlert } from '../actions';
+import { DataAlert } from '../actions/alert';
 
 export interface AlertReducer {
-  isOpen?: boolean;
-  type?: string;
-  message?: string;
-  handleClick?: any;
+  isOpen: boolean;
+  data: DataAlert;
 }
 
 const INITAL_STATE: AlertReducer = {
-  isOpen: false
+  isOpen: false,
+  data: {
+    type: 'success',
+    title: '',
+    subtitle: '',
+    okText: '',
+    confirmText: '',
+    cancelText: '',
+    onYesFn: (): void => {}
+  }
 };
 
-export default (state = INITAL_STATE, action: any): AlertReducer => {
+export default (state = INITAL_STATE, action: ActionAlert): AlertReducer => {
   switch (action.type) {
     case OPEN_ALERT:
       return {
         ...state,
         isOpen: true,
-        type: action.typeAlert,
-        message: action.message,
-        handleClick: action.handleClick
+        data: action.data
       };
     case CLOSE_ALERT:
-      return { ...state, isOpen: false };
+      return { ...INITAL_STATE };
 
     default:
       return { ...state };

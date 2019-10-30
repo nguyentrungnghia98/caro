@@ -1,7 +1,14 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, {
+  useState,
+  useEffect,
+  Fragment,
+  forwardRef,
+  useRef
+} from 'react';
 import { connect } from 'react-redux';
 import { State } from '../../reducers/index';
 import User from '../../apis/user';
+import Imgur from '../../apis/imgur';
 import { fetchUser } from '../../actions/user';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import './Profile.scss';
@@ -15,10 +22,16 @@ import {
   CardContent,
   Typography
 } from '@material-ui/core';
+import history from '../../history';
+import { openAlertError } from '../../actions/alert';
+import { openEditInfoModal } from '../../modals/EditInfo/EditInfoAction';
+import EditInfo from '../../modals/EditInfo/EditInfo';
 
 const Profile: React.FC = (props: any) => {
-  const { user, fetchUser } = props;
+  const { user, fetchUser, openAlertError, openEditInfoModal } = props;
   const [loading, setLoading] = useState(true);
+  const [loadImageDone, setLoadImageDone] = useState(true);
+  const fileInput = useRef(null);
 
   useEffect(() => {
     const fetchDataUser = async (): Promise<void> => {
@@ -30,15 +43,68 @@ const Profile: React.FC = (props: any) => {
         });
         console.log('res', response);
         fetchUser(response.data);
+        setLoading(false);
       } catch (err) {
         console.log('err', err);
-      } finally {
-        setLoading(false);
+        history.push('/login');
       }
     };
     fetchDataUser();
     // eslint-disable-next-line
   }, []);
+
+  async function updateAvatar(url: string) {
+    try {
+      const userToken = localStorage.getItem('userToken');
+      const response = await User.put(
+        '/user/me',
+        { avatar: url },
+        {
+          headers: { Authorization: userToken }
+        }
+      );
+      console.log('res', response);
+      fetchUser(response.data);
+      setLoadImageDone(true);
+    } catch (err) {
+      console.log('err', err);
+      setLoadImageDone(true);
+      openAlertError('Failed', 'Save url image failed!');
+    }
+  }
+
+  async function getUrlImage(formData: any) {
+    const clientId = '4f3c3547ebbfe10';
+    let url = '';
+    try {
+      setLoadImageDone(false);
+      const response = await Imgur.post('', formData, {
+        headers: {
+          Authorization: 'Client-ID ' + clientId
+        }
+      });
+      console.log(response);
+      url = response.data.data.link;
+    } catch (err) {
+      console.log({ err });
+      setLoadImageDone(true);
+      return openAlertError('Failed', 'Get url image failed!');
+    }
+
+    updateAvatar(url);
+  }
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const current: any = fileInput!.current;
+    const files = current.files;
+    if (!files.length) {
+      return openAlertError('Error', 'Please select file!');
+    }
+    const formData = new FormData();
+    formData.append('image', files[0]);
+    console.log('file', files);
+    getUrlImage(formData);
+  }
 
   return (
     <Fragment>
@@ -49,14 +115,29 @@ const Profile: React.FC = (props: any) => {
             <CircularProgress size={30} />
           ) : (
             <Card className="profile--content">
-              <CardMedia
-                component="img"
-                height="200"
-                alt="User avatar"
-                className="profile--avatar"
-                image="https://i.imgur.com/6RUJRyM.png"
-                title="User avatar"
-              />
+              <div className="image-wrapper">
+                {!loadImageDone ? (
+                  <CircularProgress className="image-spinner" size={30} />
+                ) : (
+                  <div className="uploadOverlay">
+                    <i className="fas fa-cloud-upload-alt"></i>
+                    <input
+                      type="file"
+                      className="uploadImage"
+                      ref={fileInput}
+                      onChange={handleFileChange}
+                    />
+                  </div>
+                )}
+                <img
+                  src={
+                    user && user.avatar
+                      ? user.avatar
+                      : 'https://i.imgur.com/6RUJRyM.png'
+                  }
+                  className={!loadImageDone ? 'opacity-spinner' : ''}
+                />
+              </div>
               <CardContent>
                 <Typography gutterBottom variant="h5" component="h2">
                   {user ? user.name : ''}
@@ -64,11 +145,22 @@ const Profile: React.FC = (props: any) => {
                 <Typography variant="body2" color="textSecondary" component="p">
                   {user ? user.email : ''}
                 </Typography>
+                <Typography variant="body2" color="textSecondary" component="p">
+                  {user ? user.phone : ''}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" component="p">
+                  {user ? user.address : ''}
+                </Typography>
               </CardContent>
+              <button className="btn btn__edit" onClick={openEditInfoModal}>
+                Edit Info
+              </button>
             </Card>
           )}
         </Paper>
       </div>
+
+      <EditInfo />
     </Fragment>
   );
 };
@@ -82,6 +174,8 @@ const mapStateToProp = (state: State) => {
 export default connect(
   mapStateToProp,
   {
-    fetchUser
+    fetchUser,
+    openAlertError,
+    openEditInfoModal
   }
 )(Profile);

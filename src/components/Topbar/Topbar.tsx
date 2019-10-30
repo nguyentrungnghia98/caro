@@ -37,7 +37,7 @@ const Topbar: React.FC = (props: any) => {
             <Grid item xs={12} className={classes.topBarContent}>
               <Link to="/" className={classes.navBarLogo}>
                 <img width={25} src={logo} alt="" />
-                <span>Typescript</span>
+                <span>Caro</span>
               </Link>
               <div className={classes.navItems}>
                 {MENU.map((item, index) => (

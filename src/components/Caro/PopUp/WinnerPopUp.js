@@ -1,8 +1,8 @@
 /* eslint-disable react/no-deprecated */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-return-assign */
-import React from 'react';
-import Drawer from 'react-drag-drawer';
+import React, { Fragment } from 'react';
+import { Dialog, DialogContent } from '@material-ui/core';
 import { connect } from 'react-redux';
 import { restartCaro, closeWinnerModal } from '../../../actions/caro';
 
@@ -15,22 +15,20 @@ const WinnerPopUp = props => {
   }
 
   return (
-    <Drawer
-      open={toggle}
-      onRequestClose={closeWinnerModal}
-      modalElementClass="modal"
-    >
-      <button type="button" className="btn btn-close" onClick={onCloseModal}>
+    <Dialog open={toggle} onRequestClose={closeWinnerModal}>
+      <button type="button" className="btn btn--close" onClick={onCloseModal}>
         <div>x</div>
       </button>
-      <div className="card-custom">
-        <h3>Winner!</h3>
-        <div className="symbol">{winner}</div>
-        <button type="button" className="btn btn-restart" onClick={restart}>
-          Restart
-        </button>
-      </div>
-    </Drawer>
+      <DialogContent className="card custom-card">
+        <Fragment>
+          <h3>Winner!</h3>
+          <div className="symbol">{winner}</div>
+          <button type="button" className="btn btn-restart" onClick={restart}>
+            Restart
+          </button>
+        </Fragment>
+      </DialogContent>
+    </Dialog>
   );
 };
 

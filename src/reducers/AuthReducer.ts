@@ -14,10 +14,18 @@ const INITAL_STATE: AuthReducer = {
 export default (state = INITAL_STATE, action: ActionLogin): AuthReducer => {
   switch (action.type) {
     case SIGN_IN:
-      return { ...state, user: action.user, isSignedIn: true };
+      return {
+        ...state,
+        user: { ...state.user, ...action.user },
+        isSignedIn: true
+      };
 
     case FETCH_USER:
-      return { ...state, user: action.user, isSignedIn: true };
+      return {
+        ...state,
+        user: { ...state.user, ...action.user },
+        isSignedIn: true
+      };
 
     case SIGN_OUT:
       return { ...INITAL_STATE };
