@@ -1,6 +1,5 @@
 import React from 'react';
 import Login from './Login/Login';
-import Container from '@material-ui/core/Container';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { Router, Route, Switch, Redirect } from 'react-router-dom';
 import history from '../history';
@@ -9,9 +8,10 @@ import { State } from '../reducers/index';
 import Profile from './Profile/Profile';
 import { ProtectedRoute } from './ProtectedRoute';
 import Alert from './Alert/Alert';
-import CaroContainer from './Caro/CaroContainer';
 import './App.scss';
 import CaroOption from './CaroOption/CaroOption';
+import OnePlayerContainer from './Caro/OnePlayer/OnePlayerContainer';
+import TwoPlayerContainer from './Caro/TwoPlayer/TwoPlayerContainer';
 
 const App: React.FC = (props: any) => {
   const { isSignedIn } = props;
@@ -27,7 +27,16 @@ const App: React.FC = (props: any) => {
         <Switch>
           <Route path="/" exact render={() => redirect()}></Route>
           <Route path="/caro" exact component={CaroOption}></Route>
-          <Route path="/caro/single" exact component={CaroContainer}></Route>
+          <Route
+            path="/caro/1-player"
+            exact
+            component={OnePlayerContainer}
+          ></Route>
+          <Route
+            path="/caro/2-player"
+            exact
+            component={TwoPlayerContainer}
+          ></Route>
           <ProtectedRoute
             path="/profile"
             exact

@@ -2,12 +2,14 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-return-assign */
 import React from 'react';
+import TimeIcon from '../../../assets/images/times-icon.png';
+import CircleIcon from '../../../assets/images/circle-icon.png';
 
 const Square = props => {
   const { value, isHighLight, onClick, disabled } = props;
   let img = null;
   if (value) {
-    img = value === 'X' ? 'times-icon' : 'circle-icon';
+    img = value === 'X' ? TimeIcon : CircleIcon;
   }
   return (
     <button
@@ -18,7 +20,7 @@ const Square = props => {
     >
       {img && (
         <div className="image-container">
-          <img alt="" src={`./images/${img}.png`} />
+          <img alt="" src={img} />
         </div>
       )}
     </button>

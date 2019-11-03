@@ -1,0 +1,49 @@
+.winner-modal {
+  .MuiDialog-paper {
+    width: 500px;
+  }
+  /* Modal */
+  .custom-card {
+    margin-top: -12px !important;
+    padding-bottom: 20px !important;
+    font-size: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  img {
+    width: 200px;
+    height: 200px;
+  }
+
+  .card .symbol {
+    font-size: 90px;
+  }
+
+  .btn__close {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    background: white;
+    color: #797979;
+    border-radius: 50%;
+    border: 1px solid #e4e4e4;
+    padding: 4px 10px;
+    font-size: 20px;
+    font-weight: 400;
+    box-shadow: 1px 1px 2px #808080;
+  }
+  .btn__close:hover {
+    background: whitesmoke;
+  }
+  .btn__close div {
+    margin-top: -2px;
+  }
+
+  .btn-restart {
+    color: white;
+    background: rgb(0, 162, 255);
+    margin-top: 36px;
+  }
+}

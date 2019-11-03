@@ -11,17 +11,12 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { State } from '../../reducers/index';
 import User from '../../apis/user';
 import { FormValueLogin } from '../../actions';
-import {
-  closeAlert,
-  openAlertSuccess,
-  openAlertError
-} from '../../actions/alert';
-import history from '../../history';
+import { openAlertSuccess, openAlertError } from '../../actions/alert';
 import FacebookLogin from 'react-facebook-login';
 import GoogleLogin from 'react-google-login';
 
 const LoginForm = (props: any) => {
-  const { type, signIn, openAlertSuccess, openAlertError, closeAlert } = props;
+  const { type, signIn, openAlertSuccess, openAlertError } = props;
   const [loading, setLoading] = useState(false);
   const [loadingSocial, setLoadingSocial] = useState(false);
   const [name, setName] = useState('');
@@ -56,12 +51,6 @@ const LoginForm = (props: any) => {
       check = false;
     }
     return check;
-  }
-
-  function handleClickRegisterAlert() {
-    console.log('handleClickRegisterAlert');
-    closeAlert();
-    history.push('/login');
   }
 
   async function callApi(): Promise<void> {
@@ -272,5 +261,5 @@ const mapStateToProp = (state: State) => {
 
 export default connect(
   mapStateToProp,
-  { signIn, openAlertSuccess, openAlertError, closeAlert }
+  { signIn, openAlertSuccess, openAlertError }
 )(LoginForm);

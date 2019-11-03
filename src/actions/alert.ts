@@ -2,7 +2,7 @@ import { OPEN_ALERT, CLOSE_ALERT } from './types';
 import { ActionAlert, Action } from '.';
 
 export interface DataAlert {
-  type?: 'success' | 'warning' | 'info' | 'error' | 'question' | string;
+  type: 'success' | 'warning' | 'info' | 'error' | 'question' | string;
   title?: string;
   subtitle?: string;
   okText?: string;
@@ -92,6 +92,25 @@ export const openAlertQuestion = (
     data
   };
 };
+
+// export const show = async (
+//   title: string,
+//   subtitle: string,
+//   confirmText = '',
+//   onYesFn = (): void => {},
+//   cancelText = '',
+//   confirmFn = null
+// ): Promise<boolean> => {
+//   return new Promise((resolve, reject) => {
+//     this.promiseInfo = {
+//       resolve,
+//       reject
+//     };
+//     this.setState({
+//       show: true
+//     });
+//   });
+// };
 
 export const closeAlert = (): Action => {
   return {

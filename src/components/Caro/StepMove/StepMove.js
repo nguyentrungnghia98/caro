@@ -9,8 +9,10 @@ const StepMove = props => {
   return history.map((val, move) => {
     const step = isIncrease ? move : length - move - 1;
     const location = moveStepLocation[step];
+
+    const player = move % 2 === 0 ? 'Computer' : 'Player';
     const desc = step
-      ? `Go to move #${step} (${location})`
+      ? `${player} #${step}\n(${location})`
       : 'Go to game start';
     return (
       <li key={`step${step}`}>

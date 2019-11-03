@@ -20,16 +20,24 @@ class Step extends React.Component {
   }
 
   render() {
-    const { changeOrderStep } = this.props;
+    const { changeOrderStep, isIncrease } = this.props;
     return (
       <div className="step-move-container">
-        <button
-          type="button"
-          className="btn btn-change"
-          onClick={changeOrderStep}
-        >
-          Change order
-        </button>
+        <div className="step__header flex-space">
+          <div className="history">History</div>
+          <button
+            type="button"
+            className="btn btn__change-order"
+            onClick={changeOrderStep}
+          >
+            {isIncrease ? (
+              <i className="fas fa-sort-amount-down-alt"></i>
+            ) : (
+              <i className="fas fa-sort-amount-up"></i>
+            )}
+          </button>
+        </div>
+
         <ul className="step-move" ref={ref => (this.stepMove = ref)}>
           <StepMoveContainer />
         </ul>

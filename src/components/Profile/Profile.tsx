@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  Fragment,
-  forwardRef,
-  useRef
-} from 'react';
+import React, { useState, useEffect, Fragment, useRef } from 'react';
 import { connect } from 'react-redux';
 import { State } from '../../reducers/index';
 import User from '../../apis/user';
@@ -13,15 +7,7 @@ import { fetchUser } from '../../actions/user';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import './Profile.scss';
 import Topbar from '../Topbar/Topbar';
-import {
-  Container,
-  Paper,
-  Card,
-  CardActionArea,
-  CardMedia,
-  CardContent,
-  Typography
-} from '@material-ui/core';
+import { Paper, Card, CardContent, Typography } from '@material-ui/core';
 import history from '../../history';
 import { openAlertError } from '../../actions/alert';
 import { openEditInfoModal } from '../../modals/EditInfo/EditInfoAction';
@@ -130,6 +116,7 @@ const Profile: React.FC = (props: any) => {
                   </div>
                 )}
                 <img
+                  alt="avatar"
                   src={
                     user && user.avatar
                       ? user.avatar

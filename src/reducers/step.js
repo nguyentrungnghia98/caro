@@ -7,6 +7,7 @@ const INITIAL_CARO = {
 const Step = (state = INITIAL_CARO, action) => {
   switch (action.type) {
     case 'CLICK_SQUARE':
+    case 'CLICK_SQUARE_TWO_PLAYER':
       return {
         ...state,
         moveStep: state.moveStep + 1,

@@ -6,6 +6,7 @@ import winner from './winner';
 import winnerModal from './winnerModal';
 import step from './step';
 import editInfo from '../modals/EditInfo/EditInfoReducer';
+import onePlayer from './onePlayer';
 
 export interface State {
   auth: AuthReducer;
@@ -15,6 +16,7 @@ export interface State {
   winnerModal: any;
   step: any;
   editInfo: boolean;
+  onePlayer: any;
 }
 
 export default combineReducers({
@@ -24,5 +26,6 @@ export default combineReducers({
   winner,
   winnerModal,
   step,
-  editInfo
+  editInfo,
+  onePlayer
 });

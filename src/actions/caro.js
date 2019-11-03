@@ -19,10 +19,11 @@ export const changeTurn = () => {
   };
 };
 
-export const updateWinnerUI = squares => {
+export const updateWinnerUI = (squares, winner = null) => {
   return {
     type: 'UPDATE_WINNER_UI',
-    payload: squares
+    payload: squares,
+    winner
   };
 };
 
@@ -57,11 +58,41 @@ export const checkWinner = (row, column) => {
 
 export const openWinnerModal = () => {
   return {
-    type: 'OPEN_MODAL'
+    type: 'OPEN_WIN_MODAL'
   };
 };
+
+export const openLoserModal = () => {
+  return {
+    type: 'OPEN_LOSE_MODAL'
+  };
+};
+
 export const closeWinnerModal = () => {
   return {
     type: 'CLOSE_MODAL'
   };
+};
+
+export const generateNextCaroPending = () => {
+  return {
+    type: 'GENERATE_NEXT_CARO_PENDING'
+  };
+};
+
+export const generateNextCaroDone = () => {
+  return {
+    type: 'GENERATE_NEXT_CARO_DONE'
+  };
+};
+
+export const clickSquareTwoPlayer = (row, column, symbol) => async (
+  dispatch,
+  getState
+) => {
+  const { moveStep } = getState().step;
+  dispatch({
+    type: 'CLICK_SQUARE_TWO_PLAYER',
+    payload: { row, column, moveStep, symbol }
+  });
 };
