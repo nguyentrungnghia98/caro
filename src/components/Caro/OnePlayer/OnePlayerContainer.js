@@ -10,7 +10,7 @@ import {
 } from '../../../actions/caro';
 
 const mapStateToProps = state => {
-  const { history, turn } = state.onePlayer;
+  const { history, turn } = state.caro;
   const { isWinner, winnerSquares } = state.winner;
   const { moveStep, isIncrease } = state.step;
   return {

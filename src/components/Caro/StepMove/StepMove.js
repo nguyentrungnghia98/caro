@@ -4,13 +4,20 @@
 import React from 'react';
 
 const StepMove = props => {
-  const { history, isIncrease, moveStepLocation, moveStep, moveToStep } = props;
+  const {
+    history,
+    isIncrease,
+    moveStepLocation,
+    moveStep,
+    moveToStep,
+    opponent
+  } = props;
   const { length } = history;
   return history.map((val, move) => {
     const step = isIncrease ? move : length - move - 1;
     const location = moveStepLocation[step];
 
-    const player = move % 2 === 0 ? 'Computer' : 'Player';
+    const player = move % 2 === 0 ? opponent : 'Player';
     const desc = step
       ? `${player} #${step}\n(${location})`
       : 'Go to game start';

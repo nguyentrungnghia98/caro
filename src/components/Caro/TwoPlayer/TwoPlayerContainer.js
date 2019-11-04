@@ -8,14 +8,23 @@ import {
   openLoserModal,
   clickSquareTwoPlayer,
   moveToStep,
-  closeWinnerModal
+  closeWinnerModal,
+  initialCaro,
+  setOpponent
 } from '../../../actions/caro';
-import { openAlertError, openAlertQuestion } from '../../../actions/alert';
+import {
+  openAlertError,
+  openAlertQuestion,
+  openAlertWarning,
+  openAlertInfo,
+  closeAlert
+} from '../../../actions/alert';
+import { fetchUser } from '../../../actions/user';
 
 const mapStateToProps = state => {
-  const { history, turn } = state.onePlayer;
+  const { history, turn } = state.caro;
   const { isWinner, winnerSquares, winner } = state.winner;
-  const { moveStep, isIncrease } = state.step;
+  const { moveStep, isIncrease, moveStepLocation } = state.step;
   return {
     history,
     moveStep,
@@ -23,7 +32,9 @@ const mapStateToProps = state => {
     isWinner,
     winner,
     winnerSquares,
-    isIncrease
+    isIncrease,
+    user: state.auth.user,
+    moveStepLocation
   };
 };
 
@@ -38,7 +49,13 @@ export default connect(
     openLoserModal,
     openAlertError,
     openAlertQuestion,
+    openAlertInfo,
+    openAlertWarning,
+    closeAlert,
     moveToStep,
-    closeWinnerModal
+    closeWinnerModal,
+    fetchUser,
+    initialCaro,
+    setOpponent
   }
 )(TwoPlayer);

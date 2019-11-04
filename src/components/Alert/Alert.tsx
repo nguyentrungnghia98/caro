@@ -38,11 +38,12 @@ const Alert = (props: any) => {
 
   function close(): void {
     console.log('close');
+    if (onYesFn) onYesFn(false);
     closeAlert();
   }
   function onYesClick(): void {
     console.log('onYesClick');
-    if (onYesFn) onYesFn();
+    if (onYesFn) onYesFn(true);
     closeAlert();
   }
 

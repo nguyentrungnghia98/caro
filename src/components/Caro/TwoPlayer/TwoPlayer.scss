@@ -244,4 +244,16 @@
   .btn-restart {
     margin-top: 20px;
   }
+
+  .left__side {
+    background: #636363fa;
+    padding: 10px 24px;
+    margin-right: 60px;
+    border-radius: 4px;
+    height: 400px;
+    .step-move {
+      padding-left: 0;
+      width: 180px;
+    }
+  }
 }

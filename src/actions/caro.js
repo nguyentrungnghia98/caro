@@ -96,3 +96,30 @@ export const clickSquareTwoPlayer = (row, column, symbol) => async (
     payload: { row, column, moveStep, symbol }
   });
 };
+
+export const initialCaro = ({
+  history,
+  lastPosition,
+  lastTurn,
+  moveStep,
+  moveStepLocation
+}) => {
+  return {
+    type: 'INITIAL_CARO',
+    payload: {
+      row: lastPosition.i,
+      column: lastPosition.j,
+      symbol: lastTurn,
+      history,
+      moveStep,
+      moveStepLocation
+    }
+  };
+};
+
+export const setOpponent = opponent => {
+  return {
+    type: 'SET_OPPONENT',
+    payload: opponent
+  };
+};

@@ -10,6 +10,10 @@ import Square from '../Square/Square';
 import './TwoPlayer.scss';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { Link } from 'react-router-dom';
+import User from '../../../apis/user';
+import { Paper } from '@material-ui/core';
+import history from '../../../history';
+import StepContainer from '../Step/StepContainer';
 
 class TwoPlayer extends React.Component {
   constructor() {
@@ -20,6 +24,7 @@ class TwoPlayer extends React.Component {
       connected: false,
       symbol: null,
       turn: false,
+      loading: false,
       hasOpponentLeft: false,
       isPendingUndo: false,
       isPendingDraw: false,
@@ -27,10 +32,16 @@ class TwoPlayer extends React.Component {
       isDraw: false,
       lastStep: 0,
       messages: [],
-      message: ''
+      message: '',
+      undoing: false
     };
     this.socket = socketIOClient('http://localhost:3001');
-    this.step = 0;
+    this.stepMoveEl = React.createRef();
+    this.undo = {};
+  }
+
+  componentWillMount() {
+    this.stepMoveEl = {};
   }
 
   onUserWin(squares, winner) {
@@ -141,25 +152,62 @@ class TwoPlayer extends React.Component {
     return false;
   }
 
+  async fetchUserData() {
+    try {
+      this.setState({ loading: true });
+      const userToken = localStorage.getItem('userToken');
+      const response = await User.get('/user/me', {
+        headers: { Authorization: userToken }
+      });
+      console.log('res', response);
+      this.props.fetchUser(response.data);
+      this.setState({ loading: false });
+
+      this.socket.emit('game.init', response.data);
+    } catch (err) {
+      console.log('err', err);
+      history.push('/login');
+    }
+  }
+
   componentDidMount() {
-    const { restartCaro, openAlertQuestion } = this.props;
+    const { restartCaro, openAlertQuestion, setOpponent } = this.props;
     restartCaro();
+    setOpponent('Opponent');
+
+    this.fetchUserData();
 
     this.socket.on('game.begin', data => {
       console.log(data);
-      this.setState({
-        connected: true,
-        symbol: data.symbol,
-        turn: data.symbol === 'X'
-      });
+      this.props.closeAlert();
+      if (data.caro.history.length) {
+        this.props.initialCaro(data.caro);
+        const state = {
+          connected: true,
+          symbol: data.symbol,
+          turn: data.symbol !== data.caro.lastTurn,
+          hasOpponentLeft: false
+        };
+        if (data.caro.status === 'draw') state.isDraw = true;
+        this.setState(state);
+        if (data.caro.status === 'win')
+          this.props.updateWinnerUI(data.caro.winnerSquares, data.caro.winner);
+      } else {
+        this.setState({
+          connected: true,
+          symbol: data.symbol,
+          turn: data.symbol === 'X'
+        });
+      }
+      // initial caro, hitory, move step
+      this.socket.emit('set.room', data.room);
     });
 
     this.socket.on('opponent.left', () => {
       console.log('Opponent was left');
       this.props.openAlertError('End game', 'Your opponent has left the match');
       this.setState({
-        hasOpponentLeft: true,
-        turn: false
+        hasOpponentLeft: true
       });
     });
 
@@ -167,12 +215,20 @@ class TwoPlayer extends React.Component {
     this.socket.on('move.made', data => {
       console.log('move.made', data);
       const { i, j } = data.position;
-      const { history, moveStep, clickSquare } = this.props;
+      const { history, moveStep, clickSquare, isIncrease } = this.props;
       const { squares } = history[moveStep];
 
       clickSquare(i, j, data.symbol);
       //this.checkWinner(i, j, squares);
       if (data.symbol !== this.state.symbol) this.setState({ turn: true });
+
+      setTimeout(() => {
+        if (isIncrease) {
+          this.stepMoveEl.scrollToBottom();
+        } else {
+          this.stepMoveEl.scrollToTop();
+        }
+      }, 300);
     });
 
     // on user win
@@ -189,9 +245,9 @@ class TwoPlayer extends React.Component {
     });
 
     // on accept undo request
-    this.socket.on('question.undo', step => {
-      this.step = step;
-      console.log('question step', this.step);
+    this.socket.on('question.undo', undo => {
+      this.undo = undo;
+      console.log('question step', this.undo);
       openAlertQuestion(
         'Request Undo',
         'Let your opponent undo their last move?',
@@ -200,12 +256,22 @@ class TwoPlayer extends React.Component {
       );
     });
     // process undo
-    this.socket.on('game.undo', step => {
-      console.log('Process undo', step);
+    this.socket.on('game.undo', ({ step, symbol }) => {
+      console.log('Process undo', step, symbol);
       this.props.moveToStep(step);
-      this.setState({
-        isPendingUndo: false
-      });
+      if (symbol === this.state.symbol) {
+        this.setState({
+          isPendingUndo: false,
+          undoing: true,
+          turn: true
+        });
+      } else {
+        this.setState({
+          isPendingUndo: false,
+          undoing: true,
+          turn: false
+        });
+      }
     });
 
     // on accept draw
@@ -245,7 +311,41 @@ class TwoPlayer extends React.Component {
         isPendingRestart: false
       });
     });
-
+    // on denied request
+    this.socket.on('denied', type => {
+      switch (type) {
+        case 'restart': {
+          this.setState({
+            isPendingRestart: false
+          });
+          this.props.openAlertInfo(
+            'Request denied',
+            'Opponent do not accept your request!'
+          );
+          break;
+        }
+        case 'undo': {
+          this.setState({
+            isPendingUndo: false
+          });
+          this.props.openAlertInfo(
+            'Request denied',
+            'Opponent do not accept your request!'
+          );
+          break;
+        }
+        case 'draw': {
+          this.setState({
+            isPendingDraw: false
+          });
+          this.props.openAlertInfo(
+            'Request denied',
+            'Opponent do not accept your request!'
+          );
+          break;
+        }
+      }
+    });
     // receive message
     this.socket.on('message.receive', data => {
       console.log('message.receive', data);
@@ -257,8 +357,23 @@ class TwoPlayer extends React.Component {
   }
 
   componentWillUnmount() {
-    this.socket.close();
+    console.log('componentWillUnmount');
+    this.socket.close(this.props.history);
   }
+
+  quitGame = () => {
+    this.props.openAlertWarning(
+      'Quit game',
+      'Are you sure you want to Quit?',
+      'Ok',
+      this.onQuitGame
+    );
+  };
+
+  onQuitGame = () => {
+    this.socket.emit('game.end');
+    history.push('/caro');
+  };
 
   sendMessage = e => {
     e.preventDefault();
@@ -270,21 +385,32 @@ class TwoPlayer extends React.Component {
     this.setState({ message: '' });
   };
 
-  onAcceptUndo = () => {
-    console.log('Accept UNDO');
-    this.socket.emit('accept.undo', this.step);
+  onAcceptUndo = result => {
+    console.log('Accept UNDO', result);
+    if (result) {
+      this.socket.emit('accept.undo', this.undo);
+    } else {
+      this.socket.emit('deny', 'undo');
+    }
   };
 
   requestUndo = () => {
     this.setState({
       isPendingUndo: true
     });
-    this.socket.emit('request.undo', this.state.lastStep);
+    this.socket.emit('request.undo', {
+      step: this.state.lastStep,
+      symbol: this.state.symbol
+    });
   };
 
-  onAcceptDraw = () => {
-    console.log('Accept Draw');
-    this.socket.emit('accept.draw');
+  onAcceptDraw = result => {
+    console.log('Accept Draw', result);
+    if (result) {
+      this.socket.emit('accept.draw');
+    } else {
+      this.socket.emit('deny', 'draw');
+    }
   };
 
   requestDraw = () => {
@@ -294,9 +420,13 @@ class TwoPlayer extends React.Component {
     this.socket.emit('request.draw');
   };
 
-  onAcceptRestart = () => {
-    console.log('Accept restart');
-    this.socket.emit('accept.restart');
+  onAcceptRestart = result => {
+    console.log('Accept restart', result);
+    if (result) {
+      this.socket.emit('accept.restart');
+    } else {
+      this.socket.emit('deny', 'restart');
+    }
   };
 
   requestRestart = () => {
@@ -305,6 +435,14 @@ class TwoPlayer extends React.Component {
       isPendingRestart: true
     });
     this.socket.emit('request.restart');
+  };
+
+  onModalDenied = () => {
+    this.setState({
+      isPendingUndo: false,
+      isPendingDraw: false,
+      isPendingRestart: false
+    });
   };
 
   onRestart = () => {
@@ -324,20 +462,33 @@ class TwoPlayer extends React.Component {
   };
 
   handleClick(i, j) {
-    const { history, moveStep } = this.props;
+    const { history, moveStep, moveStepLocation, openAlertInfo } = this.props;
+    const { undoing } = this.state;
     const { squares } = history[moveStep];
 
     if (squares[i][j] !== 0) {
       return;
     }
 
+    if (!undoing && moveStep !== history.length - 1) {
+      openAlertInfo(
+        'Action denied!',
+        "You can not play if you don't stay in last of hitory"
+      );
+      return;
+    }
+
     this.setState({
       turn: false,
-      lastStep: moveStep
+      lastStep: moveStep,
+      undoing: false
     });
 
     this.socket.emit('make.move', {
       symbol: this.state.symbol,
+      history,
+      moveStepLocation,
+      moveStep,
       position: {
         i,
         j
@@ -355,7 +506,8 @@ class TwoPlayer extends React.Component {
 
   renderRow(squares, i) {
     const { isWinner, winnerSquares } = this.props;
-    const { turn } = this.state;
+    const { turn, hasOpponentLeft, isDraw } = this.state;
+
     return this.size.map((el, j) => {
       const value = squares[i][j] ? squares[i][j] : null;
       let isHighLight = false;
@@ -368,7 +520,7 @@ class TwoPlayer extends React.Component {
           value={value}
           onClick={() => this.handleClick(i, j)}
           key={`square-${shortid.generate()}`}
-          disabled={isWinner || !turn}
+          disabled={isWinner || !turn || hasOpponentLeft || isDraw}
         />
       );
     });
@@ -441,20 +593,36 @@ class TwoPlayer extends React.Component {
       message,
       isDraw,
       isPendingRestart,
-      hasOpponentLeft
+      hasOpponentLeft,
+      loading
     } = this.state;
+
+    if (loading) {
+      return (
+        <>
+          <Topbar />
+          <div className="profile">
+            <Paper className="profile--wrapper">
+              <CircularProgress size={30} />
+            </Paper>
+          </div>
+        </>
+      );
+    }
+
     return (
       <>
         <Topbar />
         <div className="container caro-container two-player">
           {connected ? (
             <>
-              {/* {this.renderLeftSide()} */}
+              <div className="left__side">
+                <StepContainer ref={ref => (this.stepMoveEl = ref)} />
+              </div>
               <div className="board">
                 <WinnerPopUp onRestart={this.requestRestart} />
                 {this.renderBoard(squares)}
               </div>
-              {/* {this.renderRightSide()} */}
               <div className="right-side">
                 <div className="side__header">
                   <h5>2 PLAYER</h5>
@@ -507,11 +675,10 @@ class TwoPlayer extends React.Component {
                   </div>
                 </div>
                 <div className="flex-end">
-                  <Link to="/caro">
-                    <button type="button" className="btn">
-                      Quit
-                    </button>
-                  </Link>
+                  <button type="button" className="btn" onClick={this.quitGame}>
+                    Quit
+                  </button>
+
                   <button
                     type="button"
                     className="btn"

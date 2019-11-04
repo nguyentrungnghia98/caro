@@ -4,12 +4,13 @@ import { moveToStep } from '../../../actions/caro';
 
 const mapStateToProps = state => {
   const { history } = state.caro;
-  const { moveStep, moveStepLocation, isIncrease } = state.step;
+  const { moveStep, moveStepLocation, isIncrease, opponent } = state.step;
   return {
     history,
     moveStep,
     moveStepLocation,
-    isIncrease
+    isIncrease,
+    opponent
   };
 };
 
