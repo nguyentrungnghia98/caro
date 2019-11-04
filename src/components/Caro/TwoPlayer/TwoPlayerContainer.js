@@ -19,7 +19,6 @@ import {
   openAlertInfo,
   closeAlert
 } from '../../../actions/alert';
-import { fetchUser } from '../../../actions/user';
 
 const mapStateToProps = state => {
   const { history, turn } = state.caro;
@@ -54,7 +53,6 @@ export default connect(
     closeAlert,
     moveToStep,
     closeWinnerModal,
-    fetchUser,
     initialCaro,
     setOpponent
   }

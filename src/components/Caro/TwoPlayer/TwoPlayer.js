@@ -9,8 +9,6 @@ import Topbar from '../../Topbar/Topbar';
 import Square from '../Square/Square';
 import './TwoPlayer.scss';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { Link } from 'react-router-dom';
-import User from '../../../apis/user';
 import { Paper } from '@material-ui/core';
 import history from '../../../history';
 import StepContainer from '../Step/StepContainer';
@@ -35,7 +33,9 @@ class TwoPlayer extends React.Component {
       message: '',
       undoing: false
     };
-    this.socket = socketIOClient('http://localhost:3001');
+    //this.socket = socketIOClient('http://localhost:3001');
+    this.socket = socketIOClient('https://caro-server.herokuapp.com/');
+
     this.stepMoveEl = React.createRef();
     this.undo = {};
   }
@@ -152,30 +152,11 @@ class TwoPlayer extends React.Component {
     return false;
   }
 
-  async fetchUserData() {
-    try {
-      this.setState({ loading: true });
-      const userToken = localStorage.getItem('userToken');
-      const response = await User.get('/user/me', {
-        headers: { Authorization: userToken }
-      });
-      console.log('res', response);
-      this.props.fetchUser(response.data);
-      this.setState({ loading: false });
-
-      this.socket.emit('game.init', response.data);
-    } catch (err) {
-      console.log('err', err);
-      history.push('/login');
-    }
-  }
-
   componentDidMount() {
-    const { restartCaro, openAlertQuestion, setOpponent } = this.props;
+    const { restartCaro, openAlertQuestion, setOpponent, user } = this.props;
     restartCaro();
     setOpponent('Opponent');
-
-    this.fetchUserData();
+    this.socket.emit('game.init', user);
 
     this.socket.on('game.begin', data => {
       console.log(data);
@@ -186,7 +167,8 @@ class TwoPlayer extends React.Component {
           connected: true,
           symbol: data.symbol,
           turn: data.symbol !== data.caro.lastTurn,
-          hasOpponentLeft: false
+          hasOpponentLeft: false,
+          messages: data.messages
         };
         if (data.caro.status === 'draw') state.isDraw = true;
         this.setState(state);
@@ -196,7 +178,8 @@ class TwoPlayer extends React.Component {
         this.setState({
           connected: true,
           symbol: data.symbol,
-          turn: data.symbol === 'X'
+          turn: data.symbol === 'X',
+          messages: data.messages
         });
       }
       // initial caro, hitory, move step
@@ -213,10 +196,9 @@ class TwoPlayer extends React.Component {
 
     // on user click sqaure
     this.socket.on('move.made', data => {
-      console.log('move.made', data);
+      console.log('move.made');
       const { i, j } = data.position;
-      const { history, moveStep, clickSquare, isIncrease } = this.props;
-      const { squares } = history[moveStep];
+      const { clickSquare, isIncrease } = this.props;
 
       clickSquare(i, j, data.symbol);
       //this.checkWinner(i, j, squares);
@@ -344,6 +326,8 @@ class TwoPlayer extends React.Component {
           );
           break;
         }
+        default:
+          break;
       }
     });
     // receive message
@@ -379,7 +363,7 @@ class TwoPlayer extends React.Component {
     e.preventDefault();
     this.socket.emit('message.send', {
       createdAt: new Date(),
-      from: this.state.symbol,
+      from: this.props.user.email,
       message: this.state.message
     });
     this.setState({ message: '' });
@@ -589,7 +573,6 @@ class TwoPlayer extends React.Component {
       isPendingUndo,
       isPendingDraw,
       messages,
-      symbol,
       message,
       isDraw,
       isPendingRestart,
@@ -649,8 +632,7 @@ class TwoPlayer extends React.Component {
                         return (
                           <div className="message__content" key={i}>
                             <div className="from">
-                              {from === symbol ? 'You' : 'Opponent'}:{' '}
-                              <span className="created-at">{time}</span>
+                              {from}:<span className="created-at">{time}</span>
                             </div>
                             <div className="content">{message}</div>
                           </div>

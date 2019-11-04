@@ -14,9 +14,10 @@ export interface DataAlert {
 export const openAlertSuccess = (
   title: string,
   subtitle: string,
-  okText = ''
+  okText = '',
+  onYesFn = (): void => {}
 ): ActionAlert => {
-  const data = { type: 'success', title, subtitle, okText };
+  const data = { type: 'success', title, subtitle, okText, onYesFn };
   return {
     type: OPEN_ALERT,
     data

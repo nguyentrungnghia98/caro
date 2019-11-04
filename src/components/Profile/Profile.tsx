@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment, useRef } from 'react';
+import React, { useState, Fragment, useRef } from 'react';
 import { connect } from 'react-redux';
 import { State } from '../../reducers/index';
 import User from '../../apis/user';
@@ -8,36 +8,14 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import './Profile.scss';
 import Topbar from '../Topbar/Topbar';
 import { Paper, Card, CardContent, Typography } from '@material-ui/core';
-import history from '../../history';
 import { openAlertError } from '../../actions/alert';
 import { openEditInfoModal } from '../../modals/EditInfo/EditInfoAction';
 import EditInfo from '../../modals/EditInfo/EditInfo';
 
 const Profile: React.FC = (props: any) => {
   const { user, fetchUser, openAlertError, openEditInfoModal } = props;
-  const [loading, setLoading] = useState(true);
   const [loadImageDone, setLoadImageDone] = useState(true);
   const fileInput = useRef(null);
-
-  useEffect(() => {
-    const fetchDataUser = async (): Promise<void> => {
-      try {
-        setLoading(true);
-        const userToken = localStorage.getItem('userToken');
-        const response = await User.get('/user/me', {
-          headers: { Authorization: userToken }
-        });
-        console.log('res', response);
-        fetchUser(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.log('err', err);
-        history.push('/login');
-      }
-    };
-    fetchDataUser();
-    // eslint-disable-next-line
-  }, []);
 
   async function updateAvatar(url: string) {
     try {
@@ -97,53 +75,49 @@ const Profile: React.FC = (props: any) => {
       <Topbar />
       <div className="profile">
         <Paper className="profile--wrapper">
-          {loading ? (
-            <CircularProgress size={30} />
-          ) : (
-            <Card className="profile--content">
-              <div className="image-wrapper">
-                {!loadImageDone ? (
-                  <CircularProgress className="image-spinner" size={30} />
-                ) : (
-                  <div className="uploadOverlay">
-                    <i className="fas fa-cloud-upload-alt"></i>
-                    <input
-                      type="file"
-                      className="uploadImage"
-                      ref={fileInput}
-                      onChange={handleFileChange}
-                    />
-                  </div>
-                )}
-                <img
-                  alt="avatar"
-                  src={
-                    user && user.avatar
-                      ? user.avatar
-                      : 'https://i.imgur.com/6RUJRyM.png'
-                  }
-                  className={!loadImageDone ? 'opacity-spinner' : ''}
-                />
-              </div>
-              <CardContent>
-                <Typography gutterBottom variant="h5" component="h2">
-                  {user ? user.name : ''}
-                </Typography>
-                <Typography variant="body2" color="textSecondary" component="p">
-                  {user ? user.email : ''}
-                </Typography>
-                <Typography variant="body2" color="textSecondary" component="p">
-                  {user ? user.phone : ''}
-                </Typography>
-                <Typography variant="body2" color="textSecondary" component="p">
-                  {user ? user.address : ''}
-                </Typography>
-              </CardContent>
-              <button className="btn btn__edit" onClick={openEditInfoModal}>
-                Edit Info
-              </button>
-            </Card>
-          )}
+          <Card className="profile--content">
+            <div className="image-wrapper">
+              {!loadImageDone ? (
+                <CircularProgress className="image-spinner" size={30} />
+              ) : (
+                <div className="uploadOverlay">
+                  <i className="fas fa-cloud-upload-alt"></i>
+                  <input
+                    type="file"
+                    className="uploadImage"
+                    ref={fileInput}
+                    onChange={handleFileChange}
+                  />
+                </div>
+              )}
+              <img
+                alt="avatar"
+                src={
+                  user && user.avatar
+                    ? user.avatar
+                    : 'https://i.imgur.com/6RUJRyM.png'
+                }
+                className={!loadImageDone ? 'opacity-spinner' : ''}
+              />
+            </div>
+            <CardContent>
+              <Typography gutterBottom variant="h5" component="h2">
+                {user ? user.name : ''}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" component="p">
+                {user ? user.email : ''}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" component="p">
+                {user ? user.phone : ''}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" component="p">
+                {user ? user.address : ''}
+              </Typography>
+            </CardContent>
+            <button className="btn btn__edit" onClick={openEditInfoModal}>
+              Edit Info
+            </button>
+          </Card>
         </Paper>
       </div>
 

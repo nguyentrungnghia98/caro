@@ -14,6 +14,7 @@ import { FormValueLogin } from '../../actions';
 import { openAlertSuccess, openAlertError } from '../../actions/alert';
 import FacebookLogin from 'react-facebook-login';
 import GoogleLogin from 'react-google-login';
+import history from '../../history';
 
 const LoginForm = (props: any) => {
   const { type, signIn, openAlertSuccess, openAlertError } = props;
@@ -53,6 +54,10 @@ const LoginForm = (props: any) => {
     return check;
   }
 
+  function onYesFn(): void {
+    history.push('/login');
+  }
+
   async function callApi(): Promise<void> {
     try {
       setLoading(true);
@@ -67,7 +72,9 @@ const LoginForm = (props: any) => {
       } else {
         openAlertSuccess(
           'Success',
-          'You have successfully registered! Please Login to continue'
+          'You have successfully registered! Please Login to continue',
+          '',
+          onYesFn
         );
       }
     } catch (error) {
