@@ -12,6 +12,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { Paper } from '@material-ui/core';
 import history from '../../../history';
 import StepContainer from '../Step/StepContainer';
+import Config from '../../../config';
 
 class TwoPlayer extends React.Component {
   constructor() {
@@ -24,6 +25,7 @@ class TwoPlayer extends React.Component {
       turn: false,
       loading: false,
       hasOpponentLeft: false,
+      isOpponentOnline: false,
       isPendingUndo: false,
       isPendingDraw: false,
       isPendingRestart: false,
@@ -34,10 +36,11 @@ class TwoPlayer extends React.Component {
       undoing: false
     };
     //this.socket = socketIOClient('http://localhost:3001');
-    this.socket = socketIOClient('https://caro-server.herokuapp.com/');
+    this.socket = socketIOClient(Config.server);
 
     this.stepMoveEl = React.createRef();
     this.undo = {};
+    this.interval = null;
   }
 
   componentWillMount() {
@@ -158,8 +161,19 @@ class TwoPlayer extends React.Component {
     setOpponent('Opponent');
     this.socket.emit('game.init', user);
 
+    this.socket.on('opponent.reconnect', () => {
+      console.log('opponent.reconnect');
+      this.setState({
+        isOpponentOnline: true
+      });
+    });
     this.socket.on('game.begin', data => {
       console.log(data);
+
+      this.interval = setInterval(() => {
+        this.socket.emit('reconnect.opponent');
+      }, 2000);
+
       this.props.closeAlert();
       if (data.caro.history.length) {
         this.props.initialCaro(data.caro);
@@ -167,6 +181,7 @@ class TwoPlayer extends React.Component {
           connected: true,
           symbol: data.symbol,
           turn: data.symbol !== data.caro.lastTurn,
+          isOpponentOnline: data.isOpponentOnline,
           hasOpponentLeft: false,
           messages: data.messages
         };
@@ -179,6 +194,8 @@ class TwoPlayer extends React.Component {
           connected: true,
           symbol: data.symbol,
           turn: data.symbol === 'X',
+          isOpponentOnline: data.isOpponentOnline,
+          hasOpponentLeft: false,
           messages: data.messages
         });
       }
@@ -188,6 +205,18 @@ class TwoPlayer extends React.Component {
 
     this.socket.on('opponent.left', () => {
       console.log('Opponent was left');
+      this.props.openAlertInfo(
+        'Disconnect',
+        'Your opponent has disconnect. Wait for reconnect!'
+      );
+      this.setState({
+        isOpponentOnline: false
+      });
+    });
+
+    // on opponent quit game
+    this.socket.on('opponent.quit', () => {
+      this.props.closeAlert();
       this.props.openAlertError('End game', 'Your opponent has left the match');
       this.setState({
         hasOpponentLeft: true
@@ -343,6 +372,7 @@ class TwoPlayer extends React.Component {
   componentWillUnmount() {
     console.log('componentWillUnmount');
     this.socket.close(this.props.history);
+    if (this.interval) clearInterval(this.interval);
   }
 
   quitGame = () => {
@@ -354,13 +384,20 @@ class TwoPlayer extends React.Component {
     );
   };
 
-  onQuitGame = () => {
-    this.socket.emit('game.end');
-    history.push('/caro');
+  onQuitGame = result => {
+    if (result) {
+      this.socket.emit('game.end');
+      history.push('/caro');
+    }
   };
 
   sendMessage = e => {
     e.preventDefault();
+    const { hasOpponentLeft, isOpponentOnline } = this.state;
+    if (hasOpponentLeft || !isOpponentOnline) {
+      this.props.openAlertInfo('Access denied', 'Opponent was disconnected');
+      return;
+    }
     this.socket.emit('message.send', {
       createdAt: new Date(),
       from: this.props.user.email,
@@ -436,6 +473,7 @@ class TwoPlayer extends React.Component {
     restartCaro();
     this.setState({
       hasOpponentLeft: false,
+      isOpponentOnline: true,
       isPendingUndo: false,
       isPendingDraw: false,
       isPendingRestart: false,
@@ -490,7 +528,7 @@ class TwoPlayer extends React.Component {
 
   renderRow(squares, i) {
     const { isWinner, winnerSquares } = this.props;
-    const { turn, hasOpponentLeft, isDraw } = this.state;
+    const { turn, hasOpponentLeft, isDraw, isOpponentOnline } = this.state;
 
     return this.size.map((el, j) => {
       const value = squares[i][j] ? squares[i][j] : null;
@@ -504,14 +542,22 @@ class TwoPlayer extends React.Component {
           value={value}
           onClick={() => this.handleClick(i, j)}
           key={`square-${shortid.generate()}`}
-          disabled={isWinner || !turn || hasOpponentLeft || isDraw}
+          disabled={
+            isWinner || !turn || hasOpponentLeft || isDraw || !isOpponentOnline
+          }
         />
       );
     });
   }
 
   renderHeader() {
-    const { turn, symbol, hasOpponentLeft, isDraw } = this.state;
+    const {
+      turn,
+      symbol,
+      hasOpponentLeft,
+      isDraw,
+      isOpponentOnline
+    } = this.state;
     const { winner, isWinner } = this.props;
     const isYouWin = symbol === winner;
     if (isDraw) {
@@ -545,6 +591,16 @@ class TwoPlayer extends React.Component {
           </div>
         );
       }
+      if (!isOpponentOnline) {
+        return (
+          <div className="turn-box">
+            <div className="current-turn jump-animation left">
+              Opponent offline
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div className="turn-box">
           <div className="small">Turn: </div>
@@ -577,6 +633,7 @@ class TwoPlayer extends React.Component {
       isDraw,
       isPendingRestart,
       hasOpponentLeft,
+      isOpponentOnline,
       loading
     } = this.state;
 
@@ -613,7 +670,9 @@ class TwoPlayer extends React.Component {
                   <button
                     className="btn btn-restart"
                     onClick={this.requestRestart}
-                    disabled={isPendingRestart || hasOpponentLeft}
+                    disabled={
+                      isPendingRestart || hasOpponentLeft || !isOpponentOnline
+                    }
                   >
                     {isPendingRestart ? (
                       <CircularProgress size={20} />
@@ -665,7 +724,13 @@ class TwoPlayer extends React.Component {
                     type="button"
                     className="btn"
                     onClick={this.requestDraw}
-                    disabled={isPendingDraw || isWinner || isDraw}
+                    disabled={
+                      isPendingDraw ||
+                      isWinner ||
+                      isDraw ||
+                      hasOpponentLeft ||
+                      !isOpponentOnline
+                    }
                   >
                     {isPendingDraw ? <CircularProgress size={20} /> : 'Draw'}
                   </button>
@@ -673,7 +738,13 @@ class TwoPlayer extends React.Component {
                     type="button"
                     className="btn btn-restart"
                     onClick={this.requestUndo}
-                    disabled={isPendingUndo || isWinner || isDraw}
+                    disabled={
+                      isPendingUndo ||
+                      isWinner ||
+                      isDraw ||
+                      hasOpponentLeft ||
+                      !isOpponentOnline
+                    }
                   >
                     {isPendingUndo ? <CircularProgress size={20} /> : 'Undo'}
                   </button>
